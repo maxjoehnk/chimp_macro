@@ -29,15 +29,34 @@ pub trait ChimpConnection {
 
     fn press_key(&self, key: Key) {
         println!("Press {key:?}");
-        self.send_bool(key.to_osc(), true);
-        std::thread::sleep(Duration::from_millis(100));
-        self.send_bool(key.to_osc(), false);
-        std::thread::sleep(Duration::from_millis(100));
+        self.hold_key(key);
+        self.release_key(key);
     }
-    
+
+    fn hold_key(&self, key: Key) {
+        self.send_bool(key.to_osc(), true);
+        std::thread::sleep(Duration::from_millis(10));
+    }
+
+    fn release_key(&self, key: Key) {
+        self.send_bool(key.to_osc(), false);
+        std::thread::sleep(Duration::from_millis(20));
+    }
+
+    fn press_key_times(&self, key: Key, times: u16) {
+        for _ in 0..times {
+            self.press_key(key);
+        }
+    }
+
+    fn enter(&self) {
+        self.press_key(Key::Enter);
+        std::thread::sleep(Duration::from_millis(50));
+    }
+
     fn send_number(&self, value: u16) {
         let digits = value.to_string();
-        
+
         for digit in digits.chars() {
             let num = digit as u8 - b'0';
             self.press_key(Key::Number(num));
@@ -55,27 +74,55 @@ pub trait ChimpConnection {
     fn select_group(&self, group: u16) {
         self.press_key(Key::Group);
         self.send_number(group);
-        self.press_key(Key::Enter);
+        self.enter();
     }
 
     fn select_preset(&self, preset_type: PresetType, preset: u16) {
         self.press_key(Key::Preset);
         self.press_key(preset_type.into());
         self.send_number(preset);
-        self.press_key(Key::Enter);
+        self.enter();
     }
-    
+
     fn delete(&self, key: Key, number: Range<u16>) {
         self.press_key(Key::Delete);
         self.press_key(key);
         self.send_number(number.start);
         self.press_key(Key::Thru);
         self.send_number(number.end);
-        self.press_key(Key::Enter);
+        self.enter();
+        std::thread::sleep(Duration::from_millis(500));
+        self.enter();
+        std::thread::sleep(Duration::from_millis(1000));
+    }
+
+    fn record(&self, key: Key, number: u16, mode: RecordMode) {
+        self.press_key(Key::Record);
+        self.hold_key(Key::Shift);
+        let times = match mode {
+            RecordMode::Merge => 1,
+            RecordMode::Remove => 2,
+            RecordMode::Replace => 3,
+            RecordMode::Insert => 4,
+        };
+        self.press_key_times(Key::Record, times);
+        self.release_key(Key::Shift);
+        self.press_key(key);
+        self.send_number(number);
+        self.enter();
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
+pub enum RecordMode {
+    #[default]
+    Merge,
+    Remove,
+    Replace,
+    Insert,
+}
+
+#[derive(Debug, Copy, Clone)]
 pub enum Key {
     Record,
     Edit,
