@@ -2,13 +2,15 @@ use crate::chimp::*;
 use crate::osc::OscConnection;
 use rosc::{OscPacket, OscType};
 use std::io;
-use std::ops::{Range, RangeInclusive};
+use std::ops::{Range};
 use std::time::Duration;
 
+mod macro_executor;
 mod chimp;
 mod osc;
 
-fn main() {
+fn main() -> color_eyre::Result<()> {
+    color_eyre::install()?;
     let connection = OscConnection::new("192.168.1.163".parse().unwrap());
     std::thread::scope(|scope| {
         scope.spawn(|| {
@@ -101,6 +103,8 @@ fn main() {
 
         std::process::exit(0);
     });
+
+    Ok(())
 }
 
 fn record_color_cuelists(

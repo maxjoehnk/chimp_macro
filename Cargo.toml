@@ -6,3 +6,5 @@ edition = "2024"
 [dependencies]
 rosc = "0.11"
 eframe = "0.31"
+rhai = "1.22"
+color-eyre = "0.6"

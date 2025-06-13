@@ -1,5 +1,6 @@
 use std::ops::Range;
 use std::time::Duration;
+use rhai::CustomType;
 
 pub enum PresetType {
     Intensity,
@@ -113,7 +114,7 @@ pub trait ChimpConnection {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, CustomType)]
 pub enum RecordMode {
     #[default]
     Merge,
@@ -122,7 +123,7 @@ pub enum RecordMode {
     Insert,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, CustomType)]
 pub enum Key {
     Record,
     Edit,
